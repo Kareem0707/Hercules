@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { AITool } from '@/types';
+import { useToast } from '@/context/ToastContext';
 import {
   X,
   ExternalLink,
@@ -30,6 +31,7 @@ interface InAppAIWorkspaceModalProps {
 export function InAppAIWorkspaceModal({ tool, onClose }: InAppAIWorkspaceModalProps) {
   if (!tool) return null;
 
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'studio' | 'webview' | 'guide'>('studio');
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -58,6 +60,7 @@ export function InAppAIWorkspaceModal({ tool, onClose }: InAppAIWorkspaceModalPr
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
+    showToast('تم نسخ المحتوى إلى الحافظة بنجاح! 📋', 'purple');
     setTimeout(() => setCopied(false), 2000);
   };
 

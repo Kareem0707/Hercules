@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { LaunchpadProduct, PartnerPost } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import {
   Rocket,
   Flame,
@@ -25,6 +26,7 @@ import {
 import confetti from 'canvas-confetti';
 
 export default function LaunchpadPage() {
+  const { showToast } = useToast();
   const [launches, setLaunches] = useState<LaunchpadProduct[]>([]);
   const [partnerPosts, setPartnerPosts] = useState<PartnerPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,6 +99,7 @@ export default function LaunchpadPage() {
         if (selectedLaunch && selectedLaunch.id === id) {
           setSelectedLaunch({ ...selectedLaunch, upvotes: data.upvotes, hasUpvoted: true });
         }
+        showToast('تم تسجيل صوتك للمشروع بنجاح! 🔥', 'success');
       }
     } catch (e) {
       console.error(e);
@@ -120,6 +123,8 @@ export default function LaunchpadPage() {
           ...selectedLaunch,
           earlyAdoptersCount: data.total,
         });
+
+        showToast('تهانينا! انضممت لقائمة الانتظار بنجاح 🚀', 'purple');
 
         // Trigger confetti
         confetti({

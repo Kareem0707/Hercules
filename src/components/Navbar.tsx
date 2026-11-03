@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import {
   ShoppingBag,
   Layers,
@@ -25,6 +26,7 @@ export function Navbar() {
   const pathname = usePathname();
   const { totalItems, setIsCartOpen } = useCart();
   const { user, logout, openAuthModal } = useAuth();
+  const { showToast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
@@ -146,6 +148,7 @@ export function Navbar() {
                       onClick={() => {
                         logout();
                         setUserDropdownOpen(false);
+                        showToast('تم تسجيل الخروج بنجاح 👋', 'info');
                       }}
                       className="w-full flex items-center gap-2 p-2 rounded-xl text-red-400 hover:bg-red-500/15 transition-colors text-right"
                     >

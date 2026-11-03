@@ -111,7 +111,7 @@ export default function HomePage() {
       <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-14 lg:pt-12 lg:pb-20 flex-1 flex flex-col items-center justify-center">
         
         {/* Orbital System Container (Center + 4 Surrounding Departments) */}
-        <div className="relative w-full max-w-6xl lg:h-[760px] flex items-center justify-center my-auto">
+        <div className="relative w-full max-w-6xl lg:h-[720px] xl:h-[760px] flex items-center justify-center my-auto">
           
           {/* Subtle Concentric Glowing Rings (Visible on Desktop) */}
           <div className="hidden lg:block absolute inset-0 pointer-events-none">

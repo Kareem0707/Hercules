@@ -6,6 +6,7 @@ import { CartDrawer } from '@/components/CartDrawer';
 import { AuthModal } from '@/components/AuthModal';
 import { CartProvider } from '@/context/CartContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { ToastProvider } from '@/context/ToastContext';
 
 export const metadata: Metadata = {
   title: 'HERCULES | هِـرْكِـلِـيز - The Obsidian & Neon Violet Ecosystem',
@@ -30,13 +31,15 @@ export default function RootLayout({
       <body className="bg-[#05020a] text-gray-100 min-h-screen flex flex-col font-sans selection:bg-purple-500 selection:text-white">
         <AuthProvider>
           <CartProvider>
-            <Navbar />
-            <main className="flex-1">
-              {children}
-            </main>
-            <CartDrawer />
-            <AuthModal />
-            <Footer />
+            <ToastProvider>
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <CartDrawer />
+              <AuthModal />
+              <Footer />
+            </ToastProvider>
           </CartProvider>
         </AuthProvider>
       </body>

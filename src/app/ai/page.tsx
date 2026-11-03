@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AITool, AICategory } from '@/types';
 import { InAppAIWorkspaceModal } from '@/components/InAppAIWorkspaceModal';
+import { useToast } from '@/context/ToastContext';
 import {
   Cpu,
   Sparkles,
@@ -28,14 +29,17 @@ import {
   Key,
   ShieldCheck,
   Info,
+  Star,
 } from 'lucide-react';
 
 export default function AIToolsPage() {
+  const { showToast } = useToast();
   const [tools, setTools] = useState<AITool[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeInAppTool, setActiveInAppTool] = useState<AITool | null>(null);
+  const [favorites, setFavorites] = useState<string[]>([]);
 
   // Comparison State
   const [comparedToolIds, setComparedToolIds] = useState<string[]>(['ai-cursor', 'ai-v0']);
@@ -62,6 +66,7 @@ export default function AIToolsPage() {
 
   const categories = [
     { id: 'all', label: 'كافة الأدوات', icon: SlidersHorizontal },
+    { id: 'favorites', label: `المفضلة ⭐ (${favorites.length})`, icon: Star, isSpecial: true },
     { id: 'coding', label: 'برمجة وتطوير', icon: Code2 },
     { id: 'design', label: 'تصميم وجرافيك', icon: Palette },
     { id: 'video', label: 'مونتاج وفيديو', icon: Film },
@@ -70,15 +75,38 @@ export default function AIToolsPage() {
     { id: 'marketing', label: 'تسويق وسيو', icon: TrendingUp },
   ];
 
-  // Load visitor key from local storage on mount
+  // Load visitor key and favorites from local storage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedKey = localStorage.getItem('hercules_visitor_ai_key');
       const savedMode = localStorage.getItem('hercules_visitor_ai_mode') as 'client' | 'gemini' | 'openai';
       if (savedKey) setVisitorApiKey(savedKey);
       if (savedMode) setEngineMode(savedMode);
+
+      const savedFavs = localStorage.getItem('hercules_ai_favorites');
+      if (savedFavs) {
+        try {
+          setFavorites(JSON.parse(savedFavs));
+        } catch (e) {}
+      }
     }
   }, []);
+
+  const toggleFavorite = (id: string, name: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    let updated: string[];
+    if (favorites.includes(id)) {
+      updated = favorites.filter((favId) => favId !== id);
+      showToast(`تمت إزالة ${name} من المفضلة`, 'info');
+    } else {
+      updated = [...favorites, id];
+      showToast(`تمت إضافة ${name} إلى مفضلتك الشخصية ⭐`, 'purple');
+    }
+    setFavorites(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('hercules_ai_favorites', JSON.stringify(updated));
+    }
+  };
 
   const handleSaveKey = (key: string, mode: 'client' | 'gemini' | 'openai') => {
     setVisitorApiKey(key);
@@ -94,7 +122,9 @@ export default function AIToolsPage() {
     setLoading(true);
     try {
       let url = `/api/ai-tools?`;
-      if (selectedCategory !== 'all') url += `category=${selectedCategory}&`;
+      if (selectedCategory !== 'all' && selectedCategory !== 'favorites') {
+        url += `category=${selectedCategory}&`;
+      }
       if (searchQuery.trim()) url += `search=${encodeURIComponent(searchQuery.trim())}&`;
       const res = await fetch(url);
       const data = await res.json();
@@ -112,7 +142,7 @@ export default function AIToolsPage() {
     fetchTools();
   }, [selectedCategory]);
 
-  const handleUpvote = async (id: string, e: React.MouseEvent) => {
+  const handleUpvote = async (id: string, name: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       const res = await fetch(`/api/ai-tools/${id}/upvote`, { method: 'POST' });
@@ -121,21 +151,24 @@ export default function AIToolsPage() {
         setTools((prev) =>
           prev.map((t) => (t.id === id ? { ...t, upvotes: data.upvotes } : t))
         );
+        showToast(`شكراً لتصويتك! أصبحت نقاط ${name}: ${data.upvotes} ⭐`, 'success');
       }
     } catch (e) {
       console.error(e);
     }
   };
 
-  const toggleCompare = (id: string) => {
+  const toggleCompare = (id: string, name: string) => {
     if (comparedToolIds.includes(id)) {
       setComparedToolIds(comparedToolIds.filter((item) => item !== id));
+      showToast(`تمت إزالة ${name} من المقارنة`, 'info');
     } else {
       if (comparedToolIds.length >= 3) {
-        alert('يمكنك مقارنة 3 أدوات كحد أقصى في المرة الواحدة');
+        showToast('يمكنك مقارنة 3 أدوات كحد أقصى في المرة الواحدة', 'error');
         return;
       }
       setComparedToolIds([...comparedToolIds, id]);
+      showToast(`تمت إضافة ${name} إلى مصفوفة المقارنة`, 'purple');
     }
   };
 
@@ -558,89 +591,138 @@ export async function executeOptimizedTask<T = any>(): Promise<ApiResponse<T>> {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tools.map((tool) => {
-              const isCompared = comparedToolIds.includes(tool.id);
+          (() => {
+            const displayedTools = selectedCategory === 'favorites'
+              ? tools.filter((t) => favorites.includes(t.id))
+              : tools;
+
+            if (displayedTools.length === 0 && selectedCategory === 'favorites') {
               return (
-                <div
-                  key={tool.id}
-                  className="rounded-2xl bg-[#0e071c] border border-purple-500/20 p-6 flex flex-col justify-between hover:border-purple-400/60 transition-all duration-300 hover:shadow-neon-purple hover:-translate-y-1"
-                >
+                <div className="text-center py-16 px-6 rounded-3xl bg-[#0e071c] border border-purple-500/25 max-w-md mx-auto space-y-4 shadow-neon-purple animate-in fade-in">
+                  <div className="w-14 h-14 mx-auto rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-amber-300">
+                    <Star className="w-7 h-7 fill-amber-400/30" />
+                  </div>
                   <div>
-                    {/* Top strip */}
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={tool.logo}
-                          alt={tool.name}
-                          className="w-12 h-12 rounded-xl border border-purple-500/30 object-cover"
-                        />
-                        <div>
-                          <h3 className="font-black text-base text-white">{tool.name}</h3>
-                          <span className="text-[11px] text-purple-400 font-semibold">{tool.categoryName}</span>
-                        </div>
-                      </div>
-
-                      <div className="text-left">
-                        <span className="px-2.5 py-1 rounded-md bg-[#080312] border border-purple-500/30 text-[11px] font-bold text-purple-300 block mb-1">
-                          {tool.pricing}
-                        </span>
-                        <span className="text-[10px] text-green-400 font-medium block">
-                          ✓ كريديتس الزائر
-                        </span>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-gray-300 leading-relaxed line-clamp-2 mb-4">
-                      {tool.tagline}
+                    <h3 className="text-base font-black text-white">لا توجد أدوات في المفضلة حالياً</h3>
+                    <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                      انقر على أيقونة النجمة ⭐ الموجودة في أي كارت أداة لإضافتها إلى قائمتك المفضلة للوصول السريع!
                     </p>
-
-                    {/* Features list */}
-                    <div className="space-y-1.5 mb-6 text-xs text-gray-400">
-                      {tool.features.slice(0, 3).map((feat, idx) => (
-                        <div key={idx} className="flex items-center gap-2">
-                          <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                          <span className="line-clamp-1">{feat}</span>
-                        </div>
-                      ))}
-                    </div>
                   </div>
-
-                  {/* Actions & Direct Visitor Launch */}
-                  <div className="pt-4 border-t border-purple-500/15 flex items-center justify-between gap-2">
-                    <button
-                      onClick={(e) => handleUpvote(tool.id, e)}
-                      className="px-3 py-1.5 rounded-lg bg-[#080312] hover:bg-purple-500/20 border border-purple-500/20 text-xs font-bold text-purple-300 flex items-center gap-1.5 transition-colors"
-                      title="تصويت للأداة"
-                    >
-                      <ThumbsUp className="w-3.5 h-3.5" />
-                      <span>{tool.upvotes}</span>
-                    </button>
-
-                    <button
-                      onClick={() => toggleCompare(tool.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                        isCompared
-                          ? 'bg-purple-600 text-white font-bold border-purple-500 shadow-sm'
-                          : 'bg-[#080312] border-purple-500/20 text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      {isCompared ? '✓ بالمقارنة' : '+ مقارنة'}
-                    </button>
-
-                    <button
-                      onClick={() => setActiveInAppTool(tool)}
-                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white border border-purple-400/40 text-xs font-bold transition-all flex items-center gap-1.5 shadow-neon-purple hover:scale-105 active:scale-95"
-                      title="تشغيل وتجربة الأداة فورياً داخل المنصة"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-purple-200" />
-                      <span>تشغيل داخل الموقع</span>
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => setSelectedCategory('all')}
+                    className="px-5 py-2.5 rounded-xl gold-btn-primary font-bold text-xs shadow-gold-sm"
+                  >
+                    استعراض كافة الأدوات
+                  </button>
                 </div>
               );
-            })}
-          </div>
+            }
+
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayedTools.map((tool) => {
+                  const isCompared = comparedToolIds.includes(tool.id);
+                  const isFav = favorites.includes(tool.id);
+                  return (
+                    <div
+                      key={tool.id}
+                      className="rounded-2xl bg-[#0e071c] border border-purple-500/20 p-6 flex flex-col justify-between hover:border-purple-400/60 transition-all duration-300 hover:shadow-neon-purple hover:-translate-y-1"
+                    >
+                      <div>
+                        {/* Top strip */}
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={tool.logo}
+                              alt={tool.name}
+                              className="w-12 h-12 rounded-xl border border-purple-500/30 object-cover"
+                            />
+                            <div>
+                              <h3 className="font-black text-base text-white">{tool.name}</h3>
+                              <span className="text-[11px] text-purple-400 font-semibold">{tool.categoryName}</span>
+                            </div>
+                          </div>
+
+                          <div className="text-left">
+                            <span className="px-2.5 py-1 rounded-md bg-[#080312] border border-purple-500/30 text-[11px] font-bold text-purple-300 block mb-1">
+                              {tool.pricing}
+                            </span>
+                            <span className="text-[10px] text-green-400 font-medium block">
+                              ✓ كريديتس الزائر
+                            </span>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-gray-300 leading-relaxed line-clamp-2 mb-4">
+                          {tool.tagline}
+                        </p>
+
+                        {/* Features list */}
+                        <div className="space-y-1.5 mb-6 text-xs text-gray-400">
+                          {tool.features.slice(0, 3).map((feat, idx) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                              <span className="line-clamp-1">{feat}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Actions & Direct Visitor Launch */}
+                      <div className="pt-4 border-t border-purple-500/15 flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={(e) => handleUpvote(tool.id, tool.name, e)}
+                            className="px-2.5 py-1.5 rounded-xl bg-[#080312] hover:bg-purple-500/20 border border-purple-500/20 text-xs font-bold text-purple-300 flex items-center gap-1.5 transition-colors"
+                            title="تصويت للأداة"
+                          >
+                            <ThumbsUp className="w-3.5 h-3.5" />
+                            <span>{tool.upvotes}</span>
+                          </button>
+
+                          <button
+                            onClick={(e) => toggleFavorite(tool.id, tool.name, e)}
+                            className={`p-2 rounded-xl border transition-all ${
+                              isFav
+                                ? 'bg-amber-400/20 border-amber-400/50 text-amber-300 shadow-sm'
+                                : 'bg-[#080312] border-purple-500/20 text-gray-400 hover:text-amber-300 hover:border-amber-400/30'
+                            }`}
+                            title={isFav ? 'إزالة من المفضلة' : 'حفظ في المفضلة'}
+                          >
+                            <Star
+                              className={`w-3.5 h-3.5 ${
+                                isFav ? 'fill-amber-400 text-amber-400' : ''
+                              }`}
+                            />
+                          </button>
+
+                          <button
+                            onClick={() => toggleCompare(tool.id, tool.name)}
+                            className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                              isCompared
+                                ? 'bg-purple-600 text-white font-bold border-purple-500 shadow-sm'
+                                : 'bg-[#080312] border-purple-500/20 text-gray-400 hover:text-white'
+                            }`}
+                          >
+                            {isCompared ? '✓ بالمقارنة' : '+ مقارنة'}
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={() => setActiveInAppTool(tool)}
+                          className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white border border-purple-400/40 text-xs font-bold transition-all flex items-center gap-1.5 shadow-neon-purple hover:scale-105 active:scale-95"
+                          title="تشغيل وتجربة الأداة فورياً داخل المنصة"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-purple-200" />
+                          <span>تشغيل داخل الموقع</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()
         )}
       </div>
 

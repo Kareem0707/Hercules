@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { MarketProduct, MarketCategory } from '@/types';
 import { useCart } from '@/context/CartContext';
+import { useToast } from '@/context/ToastContext';
 import {
   ShoppingBag,
   Search,
@@ -43,6 +44,7 @@ export default function MarketPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { addToCart } = useCart();
+  const { showToast } = useToast();
 
   const categories = [
     { id: 'all', label: 'كافة المنتجات', icon: SlidersHorizontal },
@@ -331,7 +333,10 @@ export default function MarketPage() {
                       التفاصيل
                     </button>
                     <button
-                      onClick={() => addToCart(product)}
+                      onClick={() => {
+                        addToCart(product);
+                        showToast(`تمت إضافة "${product.title}" إلى سلة مشترياتك! 🛒`, 'purple');
+                      }}
                       className="py-2 px-3 rounded-lg gold-btn-primary text-xs font-bold flex items-center justify-center gap-1.5"
                     >
                       <ShoppingBag className="w-3.5 h-3.5" />
@@ -429,6 +434,7 @@ export default function MarketPage() {
                 <button
                   onClick={() => {
                     addToCart(selectedProduct);
+                    showToast(`تمت إضافة "${selectedProduct.title}" إلى سلة مشترياتك! 🛒`, 'purple');
                     setSelectedProduct(null);
                   }}
                   className="flex-1 py-3.5 px-6 rounded-xl gold-btn-primary font-bold text-sm flex items-center justify-center gap-2"

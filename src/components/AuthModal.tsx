@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { X, User, Mail, Lock, Sparkles, CheckCircle2 } from 'lucide-react';
 
 export function AuthModal() {
   const { isAuthModalOpen, closeAuthModal, authTab, setAuthTab, login, register } = useAuth();
+  const { showToast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,11 +28,13 @@ export function AuthModal() {
         const ok = await login(email, password);
         if (ok) {
           setSuccessMsg('تم تسجيل الدخول بنجاح! مرحباً بك.');
+          showToast('أهلاً بك مجدداً في هِـرْكِـلِـيز! 👑', 'purple');
           setTimeout(() => {
             closeAuthModal();
           }, 600);
         } else {
           setError('فشل تسجيل الدخول. يرجى التأكد من البريد الإلكتروني.');
+          showToast('فشل تسجيل الدخول. يرجى التأكد من بياناتك.', 'error');
         }
       } else {
         if (!name.trim()) {
@@ -41,11 +45,13 @@ export function AuthModal() {
         const ok = await register(name, email, password);
         if (ok) {
           setSuccessMsg('تم إنشاء حسابك بنجاح! تم تسجيل بياناتك في النظام.');
+          showToast(`تم إنشاء حسابك بنجاح! أهلاً بك يا ${name} 🌟`, 'success');
           setTimeout(() => {
             closeAuthModal();
           }, 600);
         } else {
           setError('حدث خطأ أثناء إنشاء الحساب.');
+          showToast('حدث خطأ أثناء إنشاء الحساب.', 'error');
         }
       }
     } catch (err: any) {
