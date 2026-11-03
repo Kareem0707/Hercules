@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Course, LearningTrack, Certificate, QuizQuestion } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 import {
   BookOpen,
   Award,
@@ -41,8 +42,15 @@ export default function AcademyPage() {
   const [quizSubmitted, setQuizSubmitted] = useState(false);
 
   // Certificate state
+  const { user } = useAuth();
   const [generatedCertificate, setGeneratedCertificate] = useState<Certificate | null>(null);
-  const [studentNameInput, setStudentNameInput] = useState('محمود عبد السلام');
+  const [studentNameInput, setStudentNameInput] = useState(user?.name || 'محمود عبد السلام');
+
+  useEffect(() => {
+    if (user?.name) {
+      setStudentNameInput(user.name);
+    }
+  }, [user]);
 
   // Instructor Publish modal
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
@@ -107,7 +115,7 @@ export default function AcademyPage() {
         particleCount: 120,
         spread: 80,
         origin: { y: 0.6 },
-        colors: ['#D4AF37', '#FFF2B2', '#FFFFFF'],
+        colors: ['#A855F7', '#C084FC', '#D946EF', '#FFFFFF'],
       });
 
       // Issue certificate in DB

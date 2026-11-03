@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { LaunchpadProduct, PartnerPost } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 import {
   Rocket,
   Flame,
@@ -33,8 +34,16 @@ export default function LaunchpadPage() {
   const [selectedLaunch, setSelectedLaunch] = useState<LaunchpadProduct | null>(null);
 
   // Waitlist form state
-  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const { user } = useAuth();
+  const [waitlistEmail, setWaitlistEmail] = useState(user?.email || '');
   const [waitlistJoined, setWaitlistJoined] = useState(false);
+
+  useEffect(() => {
+    if (user?.email) {
+      setWaitlistEmail(user.email);
+      setPartnerEmail(user.email);
+    }
+  }, [user]);
 
   // Launch product modal
   const [isLaunchModalOpen, setIsLaunchModalOpen] = useState(false);
@@ -117,7 +126,7 @@ export default function LaunchpadPage() {
           particleCount: 80,
           spread: 60,
           origin: { y: 0.6 },
-          colors: ['#D4AF37', '#FFF2B2', '#FFFFFF'],
+          colors: ['#A855F7', '#C084FC', '#D946EF', '#FFFFFF'],
         });
       }
     } catch (e) {

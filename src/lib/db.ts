@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import {
   MarketProduct,
   Course,
@@ -40,11 +41,16 @@ export interface DatabaseSchema {
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'hercules.json');
+const TMP_FILE = path.join(os.tmpdir(), 'hercules.json');
 
 // Ensure data folder exists
 function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch (e) {
+    // Read-only filesystem on Vercel
   }
 }
 
@@ -851,29 +857,49 @@ class HerculesDB {
   private load(): DatabaseSchema {
     if (this.cache) return this.cache;
 
-    ensureDataDir();
-    if (!fs.existsSync(DB_FILE)) {
-      this.save(initialData);
-      this.cache = initialData;
-      return initialData;
+    // 1. Try reading from /tmp first (persisted state on Vercel runtime)
+    if (fs.existsSync(TMP_FILE)) {
+      try {
+        const content = fs.readFileSync(TMP_FILE, 'utf-8');
+        this.cache = JSON.parse(content);
+        return this.cache!;
+      } catch (e) {
+        // Fallback to project file
+      }
     }
 
-    try {
-      const content = fs.readFileSync(DB_FILE, 'utf-8');
-      this.cache = JSON.parse(content);
-      return this.cache!;
-    } catch (err) {
-      console.error('Error reading Hercules DB, restoring initial data:', err);
-      this.save(initialData);
-      this.cache = initialData;
-      return initialData;
+    // 2. Try reading from project data file
+    if (fs.existsSync(DB_FILE)) {
+      try {
+        const content = fs.readFileSync(DB_FILE, 'utf-8');
+        this.cache = JSON.parse(content);
+        return this.cache!;
+      } catch (err) {
+        console.error('Error reading Hercules DB:', err);
+      }
     }
+
+    // 3. Fallback to initial seed
+    this.cache = initialData;
+    return initialData;
   }
 
   private save(data: DatabaseSchema): void {
-    ensureDataDir();
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
     this.cache = data;
+
+    // Try saving to DB_FILE first (local dev environment)
+    try {
+      ensureDataDir();
+      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+      return;
+    } catch (err) {
+      // If read-only filesystem (e.g. Vercel deployment), save to /tmp
+      try {
+        fs.writeFileSync(TMP_FILE, JSON.stringify(data, null, 2), 'utf-8');
+      } catch (tmpErr) {
+        console.warn('Could not write to /tmp, keeping in memory cache:', tmpErr);
+      }
+    }
   }
 
   // --- Reset & Seed ---
