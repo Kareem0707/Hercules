@@ -913,9 +913,13 @@ class HerculesDB {
   }
 
   // --- Market Products ---
-  public getProducts(category?: string, search?: string): MarketProduct[] {
+  public getProducts(category?: string, search?: string, includePending: boolean = false): MarketProduct[] {
     const data = this.load();
     let items = [...data.products];
+
+    if (!includePending) {
+      items = items.filter((p) => p.status !== 'pending' && p.status !== 'rejected');
+    }
 
     if (category && category !== 'all') {
       items = items.filter((p) => p.category === category);
@@ -947,10 +951,22 @@ class HerculesDB {
       salesCount: 0,
       rating: 5.0,
       reviewsCount: 1,
+      status: product.status || 'pending',
     };
     data.products.unshift(newProduct);
     this.save(data);
     return newProduct;
+  }
+
+  public approveProduct(id: string): boolean {
+    const data = this.load();
+    const prod = data.products.find((p) => p.id === id);
+    if (prod) {
+      prod.status = 'active';
+      this.save(data);
+      return true;
+    }
+    return false;
   }
 
   public deleteProduct(id: string): boolean {
@@ -1004,9 +1020,12 @@ class HerculesDB {
   }
 
   // --- Academy Courses & Tracks ---
-  public getCourses(category?: string, level?: string): Course[] {
+  public getCourses(category?: string, level?: string, includePending: boolean = false): Course[] {
     const data = this.load();
     let items = [...data.courses];
+    if (!includePending) {
+      items = items.filter((c) => c.status !== 'pending' && c.status !== 'rejected');
+    }
     if (category && category !== 'all') {
       items = items.filter((c) => c.category === category);
     }
@@ -1054,10 +1073,33 @@ class HerculesDB {
       id: `course-${Date.now()}`,
       enrolledCount: 0,
       rating: 5.0,
+      status: course.status || 'pending',
     };
     data.courses.unshift(newCourse);
     this.save(data);
     return newCourse;
+  }
+
+  public approveCourse(id: string): boolean {
+    const data = this.load();
+    const c = data.courses.find((item) => item.id === id);
+    if (c) {
+      c.status = 'active';
+      this.save(data);
+      return true;
+    }
+    return false;
+  }
+
+  public deleteCourse(id: string): boolean {
+    const data = this.load();
+    const lenBefore = data.courses.length;
+    data.courses = data.courses.filter((c) => c.id !== id);
+    if (data.courses.length !== lenBefore) {
+      this.save(data);
+      return true;
+    }
+    return false;
   }
 
   // --- AI Tools ---

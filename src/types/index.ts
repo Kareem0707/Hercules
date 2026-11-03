@@ -31,6 +31,7 @@ export interface MarketProduct {
   };
   tags: string[];
   featured: boolean;
+  status?: 'active' | 'pending' | 'rejected';
   createdAt: string;
 }
 
@@ -77,6 +78,7 @@ export interface Course {
   rating: number;
   isCertificateIncluded: boolean;
   learningTrackId?: string;
+  status?: 'active' | 'pending' | 'rejected';
   modules: CourseModule[];
   quiz?: {
     id: string;

@@ -27,8 +27,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'بيانات الكورس غير مكتملة' }, { status: 400 });
     }
 
-    const newCourse = db.addCourse(body);
-    return NextResponse.json({ success: true, course: newCourse });
+    const newCourse = db.addCourse({
+      ...body,
+      status: 'pending', // All public course submissions require academic review
+    });
+    return NextResponse.json({
+      success: true,
+      course: newCourse,
+      message: 'تم استلام طلب اعتماد الدورة بنجاح! سيتم مراجعة المحتوى والاعتماد الأكاديمي قبل إتاحته للمتعلمين.',
+    });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }

@@ -21,8 +21,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'العنوان والتصنيف مطلوبان' }, { status: 400 });
     }
 
-    const newProduct = db.addProduct(body);
-    return NextResponse.json({ success: true, product: newProduct });
+    const newProduct = db.addProduct({
+      ...body,
+      status: 'pending', // All public submissions require admin approval
+    });
+    return NextResponse.json({
+      success: true,
+      product: newProduct,
+      message: 'تم استلام طلب نشر الأصل الرقمي بنجاح! سيتم مراجعته وتدقيقه إدارياً قبل عرضه للعامة.',
+    });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }

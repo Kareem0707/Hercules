@@ -931,12 +931,6 @@ export function ScrollytellingCanvas() {
               <Crown className="w-4 sm:w-5 h-4 sm:h-5 text-cyan-400 mb-0.5" />
               <span className="font-mono font-black text-[10px] sm:text-xs text-cyan-bright">HERCULES</span>
               <span className="text-[8px] sm:text-[9px] font-mono text-cyan-300/80">DYSON CORE</span>
-              <Link
-                href="/admin"
-                className="mt-1 px-1.5 sm:px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-200 text-[8px] sm:text-[9px] font-mono hover:bg-cyan-500 hover:text-black transition-all"
-              >
-                ADMIN
-              </Link>
             </div>
 
             {/* Top-Down Interactive System Panel Overlay */}

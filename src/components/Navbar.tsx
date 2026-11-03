@@ -142,16 +142,6 @@ export function Navbar() {
                         {user.role.toUpperCase()}
                       </div>
                     </div>
-                    {user.role === 'admin' && (
-                      <Link
-                        href="/admin"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="w-full flex items-center gap-2 p-2 rounded-xl text-purple-300 hover:bg-purple-500/20 hover:text-white transition-colors font-bold"
-                      >
-                        <Sliders className="w-3.5 h-3.5 text-purple-400" />
-                        <span>لوحة الإدارة السرية (Admin)</span>
-                      </Link>
-                    )}
                     <button
                       onClick={() => {
                         logout();

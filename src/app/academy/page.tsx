@@ -181,7 +181,7 @@ export default function AcademyPage() {
 
       const data = await res.json();
       if (data.success) {
-        alert('تم نشر الكورس في أكاديمية هركليز بنجاح!');
+        alert('تم استلام طلب اعتماد الدورة بنجاح! سيتم فحص المحتوى التدريبي والأكاديمي وتدقيقه إدارياً قبل اعتماده ونشره للمتعلمين. 🎓');
         setIsPublishModalOpen(false);
         setNewCourseTitle('');
         setNewCourseDesc('');
@@ -215,9 +215,18 @@ export default function AcademyPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-purple-500/10 border border-purple-500/25 text-purple-200 text-xs font-bold shadow-sm">
-              <Award className="w-4 h-4 text-purple-400" />
-              <span>دبلومات مهنية معتمدة بشهادات رقمية موثقة</span>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-purple-500/10 border border-purple-500/25 text-purple-200 text-xs font-bold shadow-sm">
+                <Award className="w-4 h-4 text-purple-400" />
+                <span>دبلومات معتمدة بـ QR</span>
+              </div>
+              <button
+                onClick={() => setIsPublishModalOpen(true)}
+                className="gold-btn-primary px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 shadow-gold-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>+ تقديم كورس تدريبي للمراجعة</span>
+              </button>
             </div>
           </div>
         </div>
@@ -661,6 +670,99 @@ export default function AcademyPage() {
           </div>
         </div>
       )}
+    
+      {/* Modal: Submit New Course for Academic Review */}
+      {isPublishModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="relative w-full max-w-xl rounded-2xl bg-[#0c0618] border border-purple-500/30 text-white shadow-neon-purple p-6 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-4 border-b border-purple-500/20">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-purple-400" />
+                <h3 className="font-bold text-base text-white">تقديم دورة تدريبية للاعتماد الأكاديمي</h3>
+              </div>
+              <button
+                onClick={() => setIsPublishModalOpen(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Moderation Notice */}
+            <div className="my-4 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-200 flex items-center gap-2.5">
+              <ShieldCheck className="w-5 h-5 text-purple-400 flex-shrink-0" />
+              <span>
+                تخضع كافة المواد التعليمية والدورات للتدقيق والمراجعة من قبل لجنة هِـرْكِـلِـيز للتأكد من جودة المحتوى واحترافيته قبل اعتماده وإتاحته للطلاب.
+              </span>
+            </div>
+
+            <form onSubmit={handlePublishCourse} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-gray-300 font-semibold mb-1">عنوان الكورس أو الدبلومة *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="مثال: هندسة واجهات المستخدم المتقدمة بـ React وTailwind"
+                  value={newCourseTitle}
+                  onChange={(e) => setNewCourseTitle(e.target.value)}
+                  className="w-full bg-[#140a28] border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-300 font-semibold mb-1">السعر ($) (0 للمجاني)</label>
+                  <input
+                    type="number"
+                    value={newCoursePrice}
+                    onChange={(e) => setNewCoursePrice(Number(e.target.value))}
+                    className="w-full bg-[#140a28] border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 font-semibold mb-1">إجمالي ساعات التدريب</label>
+                  <input
+                    type="text"
+                    value={newCourseDuration}
+                    onChange={(e) => setNewCourseDuration(e.target.value)}
+                    className="w-full bg-[#140a28] border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-400"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 font-semibold mb-1">وصف الكورس والأهداف التعليمية</label>
+                <textarea
+                  rows={3}
+                  placeholder="اشرح ماذا سيتعلم الطالب، المتطلبات، والمشاريع العملية..."
+                  value={newCourseDesc}
+                  onChange={(e) => setNewCourseDesc(e.target.value)}
+                  className="w-full bg-[#140a28] border border-purple-500/30 rounded-xl p-3 text-white focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsPublishModalOpen(false)}
+                  className="px-4 py-2 text-gray-400 hover:text-white"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPublishing}
+                  className="px-6 py-2.5 rounded-xl gold-btn-primary font-bold shadow-neon-purple"
+                >
+                  {isPublishing ? 'جاري الإرسال...' : 'إرسال الدورة للمراجعة الأكاديمية'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

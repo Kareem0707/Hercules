@@ -101,32 +101,27 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Admin & System */}
+          {/* Platform Trust & Policy */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-gold-300 tracking-wider">
-              لوحة التحكم والدعم
+              المعايير والأمان
             </h4>
             <ul className="space-y-2 text-xs text-gray-400">
-              <li>
-                <Link href="/admin" className="text-gold-400 hover:text-gold-200 transition-colors font-semibold flex items-center gap-1">
-                  <span>لوحة التحكم الكاملة (Admin)</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </Link>
+              <li className="flex items-center gap-1.5 text-gray-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span>حماية الملكية الفكرية</span>
               </li>
-              <li>
-                <Link href="/admin" className="hover:text-gold-300 transition-colors">
-                  إدارة قاعدة البيانات وإعادة الزرع
-                </Link>
+              <li className="flex items-center gap-1.5 text-gray-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                <span>تشفير ومعالجة آمنة للملفات</span>
               </li>
-              <li>
-                <Link href="/market" className="hover:text-gold-300 transition-colors">
-                  بوابة رفع وبيع المنتجات
-                </Link>
+              <li className="flex items-center gap-1.5 text-gray-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-gold-400" />
+                <span>شهادات إتمام موثقة برمز QR</span>
               </li>
-              <li>
-                <Link href="/academy" className="hover:text-gold-300 transition-colors">
-                  بوابة المدربين والخبراء
-                </Link>
+              <li className="flex items-center gap-1.5 text-gray-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                <span>دعم فني واستشارات متخصصة</span>
               </li>
             </ul>
           </div>

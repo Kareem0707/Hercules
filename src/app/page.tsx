@@ -332,38 +332,6 @@ export default function HomePage() {
             })}
           </div>
 
-          {/* Central Admin Dashboard Banner */}
-          <div className="mt-12 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#150a28] via-[#0e071c] to-[#080312] border border-purple-500/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
-            <div className="flex items-center gap-4 text-right">
-              <div className="w-14 h-14 rounded-2xl bg-purple-500/20 border border-purple-400/40 flex items-center justify-center text-purple-300 flex-shrink-0 shadow-neon-purple">
-                <Sliders className="w-7 h-7" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-bold text-purple-400 tracking-wider">
-                    إدارة شاملة وقاعدة بيانات لحظية
-                  </span>
-                </div>
-                <h4 className="text-xl font-bold text-white">
-                  لوحة التحكم المركزية وإدارة المنصة (Admin Dashboard)
-                </h4>
-                <p className="text-xs text-gray-300 mt-1 max-w-xl">
-                  تحكم كامل في جميع الأقسام: إضافة وإدارة المنتجات، اعتماد الكورسات وإصدار الشهادات الموثقة يدوياً، مراجعة المشاريع، مع إمكانية إعادة زرع البيانات الأولية.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 flex-shrink-0 w-full md:w-auto">
-              <Link
-                href="/admin"
-                className="w-full md:w-auto px-6 py-3 rounded-xl gold-btn-primary font-bold text-xs flex items-center justify-center gap-2 shadow-gold-sm"
-              >
-                <Sliders className="w-4 h-4" />
-                <span>دخول لوحة التحكم الكاملة</span>
-              </Link>
-            </div>
-          </div>
-
         </div>
       </section>
 
@@ -387,13 +355,10 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/admin"
-              className="text-purple-300 hover:text-white font-bold flex items-center gap-1 text-xs transition-colors"
-            >
-              <span>لوحة التحكم وإعادة تعيين البيانات</span>
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </Link>
+            <div className="text-emerald-400 font-semibold flex items-center gap-1.5 text-xs bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>الخوادم السحابية متصلة ومستقرة</span>
+            </div>
           </div>
         </div>
       </section>

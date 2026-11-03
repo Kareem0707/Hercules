@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Check, Sparkles, Zap, Crown, ShieldCheck, X, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Check, Sparkles, Zap, ShieldCheck, X, Globe } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useToast } from '@/context/ToastContext';
 
@@ -11,18 +11,105 @@ interface CreditsPricingModalProps {
   onSuccess: (credits: number, planName: string) => void;
 }
 
+type CurrencyCode = 'USD' | 'EGP' | 'SAR' | 'AED' | 'KWD' | 'EUR';
+
+interface CurrencyInfo {
+  code: CurrencyCode;
+  symbol: string;
+  name: string;
+  flag: string;
+  rate: number; // relative to 1 USD
+  format: (amountUSD: number) => string;
+}
+
+const CURRENCIES: Record<CurrencyCode, CurrencyInfo> = {
+  EGP: {
+    code: 'EGP',
+    symbol: 'ج.م',
+    name: 'الجنيه المصري',
+    flag: '🇪🇬',
+    rate: 50,
+    format: (usd) => `${Math.round(usd * 50)} ج.م`,
+  },
+  SAR: {
+    code: 'SAR',
+    symbol: 'ر.س',
+    name: 'الريال السعودي',
+    flag: '🇸🇦',
+    rate: 3.75,
+    format: (usd) => `${(usd * 3.75).toFixed(1)} ر.س`,
+  },
+  AED: {
+    code: 'AED',
+    symbol: 'د.إ',
+    name: 'الدرهم الإماراتي',
+    flag: '🇦🇪',
+    rate: 3.67,
+    format: (usd) => `${(usd * 3.67).toFixed(1)} د.إ`,
+  },
+  KWD: {
+    code: 'KWD',
+    symbol: 'د.ك',
+    name: 'الدينار الكويتي',
+    flag: '🇰🇼',
+    rate: 0.31,
+    format: (usd) => `${(usd * 0.31).toFixed(2)} د.ك`,
+  },
+  USD: {
+    code: 'USD',
+    symbol: '$',
+    name: 'الدولار الأمريكي',
+    flag: '🇺🇸',
+    rate: 1,
+    format: (usd) => `$${usd.toFixed(2)}`,
+  },
+  EUR: {
+    code: 'EUR',
+    symbol: '€',
+    name: 'اليورو الأوروبي',
+    flag: '🇪🇺',
+    rate: 0.92,
+    format: (usd) => `€${(usd * 0.92).toFixed(2)}`,
+  },
+};
+
 export function CreditsPricingModal({ isOpen, onClose, onSuccess }: CreditsPricingModalProps) {
   const { showToast } = useToast();
   const [selectedPlan, setSelectedPlan] = useState<'starter' | 'pro' | 'elite'>('pro');
+  const [currency, setCurrency] = useState<CurrencyCode>('USD');
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Auto-detect visitor's country / timezone currency on mount
+  useEffect(() => {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      if (tz.includes('Cairo') || tz.includes('Egypt') || tz.includes('Africa/Cairo')) {
+        setCurrency('EGP');
+      } else if (tz.includes('Riyadh') || tz.includes('Saudi')) {
+        setCurrency('SAR');
+      } else if (tz.includes('Dubai') || tz.includes('Abu_Dhabi')) {
+        setCurrency('AED');
+      } else if (tz.includes('Kuwait')) {
+        setCurrency('KWD');
+      } else if (tz.includes('Europe') || tz.includes('Berlin') || tz.includes('Paris') || tz.includes('London')) {
+        setCurrency('EUR');
+      } else {
+        setCurrency('USD');
+      }
+    } catch {
+      setCurrency('USD');
+    }
+  }, []);
+
   if (!isOpen) return null;
+
+  const currentCurrency = CURRENCIES[currency];
 
   const plans = [
     {
       id: 'starter' as const,
       name: 'باقة البداية (Starter)',
-      price: 19,
+      priceUSD: 4.99,
       period: 'شهرياً',
       credits: 100,
       badge: 'للتجربة والتعلم',
@@ -38,7 +125,7 @@ export function CreditsPricingModal({ isOpen, onClose, onSuccess }: CreditsPrici
     {
       id: 'pro' as const,
       name: 'باقة المحترفين (Pro Creator)',
-      price: 49,
+      priceUSD: 9.99,
       period: 'شهرياً',
       credits: 500,
       badge: 'الأكثر طلباً ⭐',
@@ -54,7 +141,7 @@ export function CreditsPricingModal({ isOpen, onClose, onSuccess }: CreditsPrici
     {
       id: 'elite' as const,
       name: 'باقة النخبة (Elite VIP)',
-      price: 99,
+      priceUSD: 39.99,
       period: 'شهرياً',
       credits: 9999,
       badge: 'غير محدود 🔥',
@@ -80,6 +167,7 @@ export function CreditsPricingModal({ isOpen, onClose, onSuccess }: CreditsPrici
       if (typeof window !== 'undefined') {
         localStorage.setItem('hercules_ai_credits', String(plan.credits));
         localStorage.setItem('hercules_ai_plan', plan.name);
+        localStorage.setItem('hercules_ai_currency', currency);
       }
 
       onSuccess(plan.credits, plan.name);
@@ -91,7 +179,8 @@ export function CreditsPricingModal({ isOpen, onClose, onSuccess }: CreditsPrici
         colors: ['#A855F7', '#C084FC', '#D946EF', '#FFFFFF'],
       });
 
-      showToast(`تهانينا! تم تفعيل ${plan.name} وإضافة ${plan.credits === 9999 ? 'رصيد غير محدود' : plan.credits + ' كريديت'} بنجاح! 🎉`, 'purple');
+      const formattedPrice = currentCurrency.format(plan.priceUSD);
+      showToast(`تهانينا! تم تفعيل ${plan.name} بسعر ${formattedPrice} وإضافة ${plan.credits === 9999 ? 'رصيد غير محدود' : plan.credits + ' كريديت'} بنجاح! 🎉`, 'purple');
       onClose();
     }, 800);
   };
@@ -109,7 +198,7 @@ export function CreditsPricingModal({ isOpen, onClose, onSuccess }: CreditsPrici
         </button>
 
         {/* Modal Header */}
-        <div className="text-center max-w-xl mx-auto mb-8">
+        <div className="text-center max-w-xl mx-auto mb-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-400/30 text-purple-300 text-xs font-bold mb-3 shadow-gold-sm">
             <Zap className="w-3.5 h-3.5 text-purple-400" />
             <span>باقات اشتراك واستخدام أدوات هِـرْكِـلِـيز AI</span>
@@ -118,14 +207,46 @@ export function CreditsPricingModal({ isOpen, onClose, onSuccess }: CreditsPrici
             اختر باقتك وفعّل الاستوديو التفاعلي
           </h2>
           <p className="text-xs sm:text-sm text-gray-400 mt-2 leading-relaxed">
-            لقد استمتعت بتجربتك الأولى المجانية. اشترك الآن في الباقة المناسبة لمشاريعك للوصول غير المحدود واستخدام جميع أدوات الذكاء الاصطناعي داخل الموقع.
+            استمتعت بتجربتك الأولى المجانية. اختر الباقة المناسبة لمشاريعك للوصول غير المحدود وتوليد المحتوى بالذكاء الاصطناعي بالعملة المحلية لبلدك.
           </p>
+
+          {/* Currency Selector Bar */}
+          <div className="mt-5 p-2 rounded-2xl bg-[#140a28]/80 border border-purple-500/25 flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 text-xs text-purple-300 font-bold px-2">
+              <Globe className="w-3.5 h-3.5 text-purple-400" />
+              <span>عملة التسعير:</span>
+            </div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => {
+                const cur = CURRENCIES[code];
+                const isActive = currency === code;
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setCurrency(code)}
+                    className={`px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                      isActive
+                        ? 'bg-purple-600 text-white shadow-neon-purple scale-105'
+                        : 'bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white border border-white/5'
+                    }`}
+                  >
+                    <span>{cur.flag}</span>
+                    <span>{cur.code}</span>
+                    <span className="text-[10px] opacity-80">({cur.symbol})</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {/* The 3 Subscription Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {plans.map((plan) => {
             const isSelected = selectedPlan === plan.id;
+            const formattedPrice = currentCurrency.format(plan.priceUSD);
+
             return (
               <div
                 key={plan.id}
@@ -154,11 +275,19 @@ export function CreditsPricingModal({ isOpen, onClose, onSuccess }: CreditsPrici
                     )}
                   </div>
 
-                  <div className="flex items-baseline gap-1 my-3">
-                    <span className="text-3xl sm:text-4xl font-black text-white">
-                      ${plan.price}
-                    </span>
-                    <span className="text-xs text-gray-400">/ {plan.period}</span>
+                  {/* Localized Price Display */}
+                  <div className="my-3">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+                        {formattedPrice}
+                      </span>
+                      <span className="text-xs text-gray-400">/ {plan.period}</span>
+                    </div>
+                    {currency !== 'USD' && (
+                      <div className="text-[11px] text-gray-500 mt-0.5">
+                        يعادل (${plan.priceUSD.toFixed(2)} USD)
+                      </div>
+                    )}
                   </div>
 
                   <div className="text-xs font-bold text-purple-400 mb-4 pb-3 border-b border-purple-500/15">
@@ -189,7 +318,7 @@ export function CreditsPricingModal({ isOpen, onClose, onSuccess }: CreditsPrici
                   }`}
                 >
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>{isProcessing ? 'جاري تفعيل الاشتراك...' : 'اشتراك وتفعيل الرصيد'}</span>
+                  <span>{isProcessing ? 'جاري تفعيل الاشتراك...' : `تفعيل الاشتراك (${formattedPrice})`}</span>
                 </button>
               </div>
             );
@@ -200,7 +329,7 @@ export function CreditsPricingModal({ isOpen, onClose, onSuccess }: CreditsPrici
         <div className="mt-6 pt-5 border-t border-purple-500/15 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-purple-400" />
-            <span>ضمان استرجاع كامل 14 يوماً مع إمكانية الترقية أو الإلغاء في أي وقت.</span>
+            <span>تسعير فوري بالعملة المحلية مع ضمان استرجاع كامل 14 يوماً وإلغاء في أي وقت.</span>
           </div>
           <button
             onClick={onClose}

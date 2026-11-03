@@ -125,13 +125,13 @@ export default function MarketPage() {
 
       const data = await res.json();
       if (data.success) {
-        alert('تم نشر منتجك في متجر هِرْكِليز بنجاح!');
+        showToast('تم إرسال طلبك بنجاح! سيتم مراجعة الأصل الرقمي وتدقيقه إدارياً قبل اعتماده ونشره في المتجر. 🛡️', 'success');
         setIsAddProductOpen(false);
         setNewTitle('');
         setNewDescription('');
         fetchProducts();
       } else {
-        alert(data.error || 'فشل نشر المنتج');
+        showToast(data.error || 'فشل إرسال الطلب', 'error');
       }
     } catch (err) {
       alert('حدث خطأ أثناء النشر');
@@ -159,9 +159,18 @@ export default function MarketPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-purple-500/10 border border-purple-500/25 text-purple-200 text-xs font-bold shadow-sm">
-              <ShieldCheck className="w-4 h-4 text-purple-400" />
-              <span>أصول رقمية موثقة ومحمية بتراخيص تجارية</span>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-purple-500/10 border border-purple-500/25 text-purple-200 text-xs font-bold shadow-sm">
+                <ShieldCheck className="w-4 h-4 text-purple-400" />
+                <span>أصول موثقة ومعتمدة</span>
+              </div>
+              <button
+                onClick={() => setIsAddProductOpen(true)}
+                className="gold-btn-primary px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 shadow-gold-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>+ تقديم أصل رقمي للمراجعة</span>
+              </button>
             </div>
           </div>
 
@@ -441,6 +450,135 @@ export default function MarketPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Submit New Product for Moderation */}
+      {isAddProductOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="relative w-full max-w-xl rounded-2xl bg-[#0c0618] border border-purple-500/30 text-white shadow-neon-purple p-6 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-4 border-b border-purple-500/20">
+              <div className="flex items-center gap-2">
+                <Plus className="w-5 h-5 text-purple-400" />
+                <h3 className="font-bold text-base text-white">تقديم أصل رقمي للمراجعة والاعتماد</h3>
+              </div>
+              <button
+                onClick={() => setIsAddProductOpen(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Moderation Shield Notice */}
+            <div className="my-4 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-200 flex items-center gap-2.5">
+              <ShieldCheck className="w-5 h-5 text-purple-400 flex-shrink-0" />
+              <span>
+                سيخضع الأصل الرقمي لمراجعة وتدقيق إدارة هِـرْكِـلِـيز للتأكد من خلوه من أي محتوى مسيء وضمان معايير الجودة قبل إتاحته للمشترين.
+              </span>
+            </div>
+
+            <form onSubmit={handleCreateProduct} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-gray-300 font-semibold mb-1">عنوان الأصل الرقمي *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="مثال: حزمة قوالب برمجية 4K أو واجهات مستخدم Tailwind"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="w-full bg-[#140a28] border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-300 font-semibold mb-1">التصنيف *</label>
+                  <select
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value as MarketCategory)}
+                    className="w-full bg-[#140a28] border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-400"
+                  >
+                    <option value="templates-ui">قوالب مواقع وواجهات UI</option>
+                    <option value="adobe-video-photo">ملفات أدوبي ومونتاج</option>
+                    <option value="notion-excel">قوالب Notion وإكسيل</option>
+                    <option value="design-resources">ملفات تصميم وموارد</option>
+                    <option value="tools-plugins">إضافات وبرامج</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 font-semibold mb-1">السعر المقترح ($ USD) *</label>
+                  <input
+                    type="number"
+                    value={newPrice}
+                    onChange={(e) => setNewPrice(Number(e.target.value))}
+                    className="w-full bg-[#140a28] border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-400"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-300 font-semibold mb-1">صيغة الملفات</label>
+                  <input
+                    type="text"
+                    value={newFileType}
+                    onChange={(e) => setNewFileType(e.target.value)}
+                    className="w-full bg-[#140a28] border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 font-semibold mb-1">الحجم التقديري</label>
+                  <input
+                    type="text"
+                    value={newFileSize}
+                    onChange={(e) => setNewFileSize(e.target.value)}
+                    className="w-full bg-[#140a28] border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-400"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 font-semibold mb-1">رابط صورة المعاينة (Thumbnail URL)</label>
+                <input
+                  type="text"
+                  value={newThumbnail}
+                  onChange={(e) => setNewThumbnail(e.target.value)}
+                  className="w-full bg-[#140a28] border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 font-semibold mb-1">وصف المنتج ومميزاته</label>
+                <textarea
+                  rows={3}
+                  placeholder="اشرح محتويات الحزمة، المتطلبات، وكيفية الاستخدام..."
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  className="w-full bg-[#140a28] border border-purple-500/30 rounded-xl p-3 text-white focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAddProductOpen(false)}
+                  className="px-4 py-2 text-gray-400 hover:text-white"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-6 py-2.5 rounded-xl gold-btn-primary font-bold shadow-neon-purple"
+                >
+                  {isSubmitting ? 'جاري الإرسال...' : 'إرسال الأصل الرقمي للمراجعة'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
