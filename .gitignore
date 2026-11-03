@@ -1,0 +1,37 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Next.js build output
+/.next/
+/out/
+
+# Production
+/build
+
+# Heavy animation frames & unused image sequences (~350MB)
+public/frames/
+public/frames
+public/hercules img/
+public/hercules img
+src/hercules img/
+src/hercules img
+*.jfif
+
+# Environment files
+.env*.local
+.env
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+
+# OS Files
+.DS_Store
+Thumbs.db
