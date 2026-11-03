@@ -1109,10 +1109,13 @@ class HerculesDB {
   }
 
   // --- Launchpad ---
-  public getLaunches(): LaunchpadProduct[] {
+  public getLaunches(includePending: boolean = false): LaunchpadProduct[] {
     const data = this.load();
-    // Sort by upvotes descending
-    return [...data.launches].sort((a, b) => b.upvotes - a.upvotes);
+    let list = [...data.launches];
+    if (!includePending) {
+      list = list.filter((l) => l.status !== 'pending');
+    }
+    return list.sort((a, b) => b.upvotes - a.upvotes);
   }
 
   public getLaunchById(id: string): LaunchpadProduct | undefined {
@@ -1153,6 +1156,7 @@ class HerculesDB {
     const newLaunch: LaunchpadProduct = {
       ...launch,
       id: `launch-${Date.now()}`,
+      status: 'pending', // Requires admin approval to prevent unauthorized content
       upvotes: 1,
       rankToday: data.launches.length + 1,
       earlyAdoptersCount: 1,
@@ -1161,6 +1165,28 @@ class HerculesDB {
     data.launches.unshift(newLaunch);
     this.save(data);
     return newLaunch;
+  }
+
+  public approveLaunch(launchId: string): boolean {
+    const data = this.load();
+    const l = data.launches.find((item) => item.id === launchId);
+    if (l) {
+      l.status = 'live';
+      this.save(data);
+      return true;
+    }
+    return false;
+  }
+
+  public deleteLaunch(launchId: string): boolean {
+    const data = this.load();
+    const lenBefore = data.launches.length;
+    data.launches = data.launches.filter((item) => item.id !== launchId);
+    if (data.launches.length !== lenBefore) {
+      this.save(data);
+      return true;
+    }
+    return false;
   }
 
   public getPartnerPosts(): PartnerPost[] {

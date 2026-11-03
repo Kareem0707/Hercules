@@ -159,13 +159,10 @@ export default function MarketPage() {
               </p>
             </div>
 
-            <button
-              onClick={() => setIsAddProductOpen(true)}
-              className="px-5 py-3 rounded-xl gold-btn-primary font-bold text-sm flex items-center gap-2 shadow-gold-sm"
-            >
-              <Plus className="w-4 h-4" />
-              <span>ارفع منتجك وابدأ البيع</span>
-            </button>
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-purple-500/10 border border-purple-500/25 text-purple-200 text-xs font-bold shadow-sm">
+              <ShieldCheck className="w-4 h-4 text-purple-400" />
+              <span>أصول رقمية موثقة ومحمية بتراخيص تجارية</span>
+            </div>
           </div>
 
           {/* Search Bar & Price Filters */}
@@ -444,128 +441,6 @@ export default function MarketPage() {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add New Product Modal */}
-      {isAddProductOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="relative w-full max-w-xl rounded-3xl bg-ebony border border-gold-500/30 text-white shadow-gold-lg p-6 sm:p-8 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between pb-4 border-b border-gold-500/20">
-              <div className="flex items-center gap-2">
-                <Plus className="w-5 h-5 text-gold-400" />
-                <h3 className="text-lg font-bold text-white">نشر أصل رقمي جديد في المتجر</h3>
-              </div>
-              <button
-                onClick={() => setIsAddProductOpen(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateProduct} className="mt-6 space-y-4 text-xs">
-              <div>
-                <label className="block text-gray-300 font-semibold mb-1">عنوان المنتج الرقمي *</label>
-                <input
-                  type="text"
-                  placeholder="مثال: حزمة انتقالات بريميير سينمائية 4K"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  required
-                  className="w-full bg-charcoal border border-gold-500/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-gold-500 text-sm"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-300 font-semibold mb-1">القسم والتصنيف *</label>
-                  <select
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value as MarketCategory)}
-                    className="w-full bg-charcoal border border-gold-500/20 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-gold-500 text-xs"
-                  >
-                    <option value="templates-ui">قوالب مواقع وواجهات UI</option>
-                    <option value="adobe-video-photo">ملفات أدوبي ومونتاج</option>
-                    <option value="notion-excel">قوالب Notion وملفات Excel</option>
-                    <option value="design-resources">ملفات تصميم وموارد جاهزة</option>
-                    <option value="tools-plugins">إضافات وبرامج وأدوات</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gray-300 font-semibold mb-1">السعر بالدولار ($) (0 للمجاني)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={newPrice}
-                    onChange={(e) => setNewPrice(Number(e.target.value))}
-                    className="w-full bg-charcoal border border-gold-500/20 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-gold-500 text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-300 font-semibold mb-1">صيغة الملفات</label>
-                  <input
-                    type="text"
-                    value={newFileType}
-                    onChange={(e) => setNewFileType(e.target.value)}
-                    placeholder="مثال: Next.js / PSD / Excel"
-                    className="w-full bg-charcoal border border-gold-500/20 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-gold-500 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-300 font-semibold mb-1">حجم الملف التقديري</label>
-                  <input
-                    type="text"
-                    value={newFileSize}
-                    onChange={(e) => setNewFileSize(e.target.value)}
-                    placeholder="مثال: 120 MB"
-                    className="w-full bg-charcoal border border-gold-500/20 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-gold-500 text-xs"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-300 font-semibold mb-1">رابط صورة المعاينة (Thumbnail URL)</label>
-                <input
-                  type="url"
-                  value={newThumbnail}
-                  onChange={(e) => setNewThumbnail(e.target.value)}
-                  className="w-full bg-charcoal border border-gold-500/20 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-gold-500 text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-300 font-semibold mb-1">وصف المنتج ومميزاته</label>
-                <textarea
-                  rows={3}
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder="اشرح محتويات الحزمة، المتطلبات، وكيفية الاستخدام..."
-                  className="w-full bg-charcoal border border-gold-500/20 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500 text-xs"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-charcoal-light flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsAddProductOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-gray-400 hover:text-white"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-6 py-2.5 rounded-xl gold-btn-primary font-bold text-xs flex items-center gap-2"
-                >
-                  {isSubmitting ? 'جاري الحفظ والرفع...' : 'نشر المنتج الآن في هِرْكِليز'}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

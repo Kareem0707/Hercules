@@ -215,13 +215,10 @@ export default function AcademyPage() {
               </p>
             </div>
 
-            <button
-              onClick={() => setIsPublishModalOpen(true)}
-              className="px-5 py-3 rounded-xl gold-btn-primary font-bold text-sm flex items-center gap-2 shadow-gold-sm"
-            >
-              <Plus className="w-4 h-4" />
-              <span>انضم كمدرب وانشر كورسك</span>
-            </button>
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-purple-500/10 border border-purple-500/25 text-purple-200 text-xs font-bold shadow-sm">
+              <Award className="w-4 h-4 text-purple-400" />
+              <span>دبلومات مهنية معتمدة بشهادات رقمية موثقة</span>
+            </div>
           </div>
         </div>
       </div>
@@ -661,91 +658,6 @@ export default function AcademyPage() {
                 <span>طباعة وتحميل الشهادة PDF</span>
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Instructor Publish Course Modal */}
-      {isPublishModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="relative w-full max-w-xl rounded-3xl bg-ebony border border-gold-500/30 text-white shadow-gold-lg p-6 sm:p-8 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between pb-4 border-b border-gold-500/20">
-              <div className="flex items-center gap-2">
-                <Plus className="w-5 h-5 text-gold-400" />
-                <h3 className="text-lg font-bold text-white">نشر كورس تدريبي جديد في الأكاديمية</h3>
-              </div>
-              <button
-                onClick={() => setIsPublishModalOpen(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handlePublishCourse} className="mt-6 space-y-4 text-xs">
-              <div>
-                <label className="block text-gray-300 font-semibold mb-1">عنوان الكورس أو الدبلومة *</label>
-                <input
-                  type="text"
-                  placeholder="مثال: هندسة واجهات المستخدم المتقدمة بـ Next.js 14"
-                  value={newCourseTitle}
-                  onChange={(e) => setNewCourseTitle(e.target.value)}
-                  required
-                  className="w-full bg-charcoal border border-gold-500/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-gold-500 text-sm"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-300 font-semibold mb-1">السعر ($) (0 للمجاني)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={newCoursePrice}
-                    onChange={(e) => setNewCoursePrice(Number(e.target.value))}
-                    className="w-full bg-charcoal border border-gold-500/20 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-gold-500 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-300 font-semibold mb-1">إجمالي ساعات التدريب</label>
-                  <input
-                    type="text"
-                    value={newCourseDuration}
-                    onChange={(e) => setNewCourseDuration(e.target.value)}
-                    placeholder="مثال: 16 ساعة"
-                    className="w-full bg-charcoal border border-gold-500/20 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-gold-500 text-xs"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-300 font-semibold mb-1">وصف الكورس والأهداف التعليمية</label>
-                <textarea
-                  rows={3}
-                  value={newCourseDesc}
-                  onChange={(e) => setNewCourseDesc(e.target.value)}
-                  placeholder="اشرح ماذا سيتعلم الطالب، المتطلبات، والمشاريع..."
-                  className="w-full bg-charcoal border border-gold-500/20 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500 text-xs"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-charcoal-light flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsPublishModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-gray-400 hover:text-white"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  disabled={isPublishing}
-                  className="px-6 py-2.5 rounded-xl gold-btn-primary font-bold text-xs"
-                >
-                  {isPublishing ? 'جاري الاعتماد والنشر...' : 'نشر الكورس وتفعيل التسجيل'}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

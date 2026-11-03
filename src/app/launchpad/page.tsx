@@ -168,13 +168,14 @@ export default function LaunchpadPage() {
           partnerRoles: projectSeekingPartners ? ['شريك تقني', 'مدير تسويق نمو'] : [],
           verified: true,
           featured: false,
-          status: 'live',
+          status: 'pending',
         }),
       });
 
       const data = await res.json();
       if (data.success) {
-        alert('🚀 مبروك! تم إطلاق مشروعك بنجاح على هِرْكِليز!');
+        showToast('تم إرسال مشروعك للمراجعة والتدقيق الإداري وسيتم نشره فور اعتماده 🛡️', 'purple');
+        alert('تم إرسال المشروع بنجاح! يخضع مشروعك لمراجعة وتدقيق الإدارة وسيظهر للعامة فور اعتماده لمنع أي محتوى مخالف.');
         setIsLaunchModalOpen(false);
         setProjectName('');
         setProjectTagline('');

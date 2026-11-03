@@ -167,7 +167,7 @@ export interface LaunchpadProduct {
   commentsCount: number;
   verified: boolean;
   featured: boolean;
-  status: 'live' | 'upcoming';
+  status: 'live' | 'upcoming' | 'pending';
   hasUpvoted?: boolean;
 }
 

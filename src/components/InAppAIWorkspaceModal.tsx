@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AITool } from '@/types';
 import { useToast } from '@/context/ToastContext';
+import { CreditsPricingModal } from './CreditsPricingModal';
 import {
   X,
   ExternalLink,
@@ -35,6 +36,27 @@ export function InAppAIWorkspaceModal({ tool, onClose }: InAppAIWorkspaceModalPr
   const [activeTab, setActiveTab] = useState<'studio' | 'webview' | 'guide'>('studio');
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // Credits & Subscriptions State
+  const [credits, setCredits] = useState<number>(1);
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [planName, setPlanName] = useState('تجريبي مجاني (1 كريديت)');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedCredits = localStorage.getItem('hercules_ai_credits');
+      const savedPlan = localStorage.getItem('hercules_ai_plan');
+      if (savedCredits !== null) {
+        setCredits(Number(savedCredits));
+      } else {
+        localStorage.setItem('hercules_ai_credits', '1');
+        setCredits(1);
+      }
+      if (savedPlan) {
+        setPlanName(savedPlan);
+      }
+    }
+  }, []);
+
   // Studio Interactive States
   const [inputPrompt, setInputPrompt] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -66,8 +88,25 @@ export function InAppAIWorkspaceModal({ tool, onClose }: InAppAIWorkspaceModalPr
 
   const handleExecuteStudio = () => {
     if (!inputPrompt.trim()) return alert('يرجى كتابة نص أو فكرة للتجربة');
+
+    // Credit gate: 1st time free, then must subscribe
+    if (credits <= 0) {
+      setIsPricingModalOpen(true);
+      showToast('لقد استهلكت رصيدك المجاني الأول! يرجى اختيار إحدى الباقات للاستمرار ⚡', 'error');
+      return;
+    }
+
     setIsProcessing(true);
     setStudioOutput(null);
+
+    // Deduct credit
+    if (credits < 9999) {
+      const nextCredits = credits - 1;
+      setCredits(nextCredits);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('hercules_ai_credits', String(nextCredits));
+      }
+    }
 
     setTimeout(() => {
       if (tool.category === 'coding') {
@@ -215,8 +254,18 @@ export const Generated${tool.name.replace(/[^a-zA-Z]/g, '')}Component: React.FC<
             </button>
           </div>
 
-          {/* Action Icons */}
+          {/* Action Icons & Credits Upgrade */}
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsPricingModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/40 text-purple-200 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+              title="الرصيد المتبقي لاستخدام الذكاء الاصطناعي"
+            >
+              <Zap className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+              <span>{credits >= 9999 ? 'غير محدود 🔥' : `${credits} كريديت`}</span>
+              <span className="text-[10px] text-purple-300 font-normal">| شحن باقة</span>
+            </button>
+
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white"
@@ -588,6 +637,16 @@ export const Generated${tool.name.replace(/[^a-zA-Z]/g, '')}Component: React.FC<
           )}
         </div>
       </div>
+
+      {/* Credits & Subscription Plans Modal */}
+      <CreditsPricingModal
+        isOpen={isPricingModalOpen}
+        onClose={() => setIsPricingModalOpen(false)}
+        onSuccess={(newCredits, name) => {
+          setCredits(newCredits);
+          setPlanName(name);
+        }}
+      />
     </div>
   );
 }

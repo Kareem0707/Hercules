@@ -11,11 +11,13 @@ export async function GET() {
       success: true,
       stats,
       users,
+      allLaunches: raw.launches,
       counts: {
         products: raw.products.length,
         courses: raw.courses.length,
         aiTools: raw.aiTools.length,
         launches: raw.launches.length,
+        pendingLaunches: raw.launches.filter((l) => l.status === 'pending').length,
         orders: raw.orders.length,
         certificates: raw.certificates.length,
       },
@@ -33,6 +35,16 @@ export async function POST(request: Request) {
     if (action === 'update_role' && userId && role) {
       const ok = db.updateUserRole(userId, role);
       return NextResponse.json({ success: ok });
+    }
+
+    if (action === 'approve_launch' && body.launchId) {
+      const ok = db.approveLaunch(body.launchId);
+      return NextResponse.json({ success: ok, message: 'تمت الموافقة على نشر المشروع للعامة بنجاح!' });
+    }
+
+    if (action === 'delete_launch' && body.launchId) {
+      const ok = db.deleteLaunch(body.launchId);
+      return NextResponse.json({ success: ok, message: 'تم رفض وحذف المشروع بنجاح.' });
     }
 
     if (action === 'delete_user' && userId) {

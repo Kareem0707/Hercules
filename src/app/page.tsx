@@ -111,7 +111,7 @@ export default function HomePage() {
       <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-14 lg:pt-12 lg:pb-20 flex-1 flex flex-col items-center justify-center">
         
         {/* Orbital System Container (Center + 4 Surrounding Departments) */}
-        <div className="relative w-full max-w-6xl lg:h-[720px] xl:h-[760px] flex items-center justify-center my-auto">
+        <div className="relative w-full max-w-6xl lg:h-[720px] xl:h-[760px] flex flex-col lg:block items-center justify-center my-auto">
           
           {/* Subtle Concentric Glowing Rings (Visible on Desktop) */}
           <div className="hidden lg:block absolute inset-0 pointer-events-none">
@@ -128,7 +128,7 @@ export default function HomePage() {
           {/* ======================================================== */}
           {/* THE CENTER CORE: Compact, Centered, No Overlaps          */}
           {/* ======================================================== */}
-          <div className="relative z-20 w-full max-w-[280px] sm:max-w-[310px] mx-auto text-center p-5 rounded-3xl bg-[#0c0618]/95 border border-purple-500/40 backdrop-blur-2xl shadow-neon-purple my-6 lg:my-0 transition-transform duration-300 hover:scale-[1.02]">
+          <div className="relative z-20 w-full max-w-[320px] sm:max-w-[340px] lg:max-w-[310px] mx-auto text-center p-5 sm:p-6 rounded-3xl bg-[#0c0618]/95 border border-purple-500/40 backdrop-blur-2xl shadow-neon-purple mb-8 lg:mb-0 lg:absolute lg:top-1/2 lg:left-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 transition-transform duration-300 hover:scale-[1.02]">
             
             {/* Top Pill Badge */}
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-400/30 text-purple-300 text-[11px] font-semibold mb-2 shadow-sm">
@@ -147,7 +147,7 @@ export default function HomePage() {
             </div>
 
             {/* Compact About Snippet */}
-            <div className="p-3 rounded-2xl bg-black/50 border border-purple-500/20 text-[11px] text-gray-300 leading-relaxed mb-4 text-center">
+            <div className="p-3.5 rounded-2xl bg-black/50 border border-purple-500/20 text-[11px] text-gray-300 leading-relaxed mb-4 text-center">
               <p className="font-semibold text-white mb-1">
                 منظومة شاملة توحّد 4 ركائز للمبدعين ورواد الأعمال:
               </p>
@@ -160,18 +160,17 @@ export default function HomePage() {
             <div className="flex items-center justify-center gap-2">
               <a
                 href="#ecosystem-overview"
-                className="px-4 py-2 rounded-xl gold-btn-primary text-xs font-bold transition-all shadow-gold-sm flex items-center gap-1"
+                className="flex-1 py-2.5 px-4 rounded-xl gold-btn-primary text-xs font-bold transition-all shadow-gold-sm flex items-center justify-center gap-1.5"
               >
                 <span>استكشاف الأقسام</span>
-                <ChevronLeft className="w-3 h-3" />
+                <ChevronLeft className="w-3.5 h-3.5" />
               </a>
 
               <Link
-                href="/admin"
-                className="px-3.5 py-2 rounded-xl bg-white/[0.04] border border-purple-500/30 hover:border-purple-400 text-gray-300 hover:text-purple-200 text-xs font-bold transition-all flex items-center gap-1"
+                href="/market"
+                className="py-2.5 px-3.5 rounded-xl bg-purple-500/15 border border-purple-400/30 hover:border-purple-400 text-purple-200 text-xs font-bold transition-all flex items-center justify-center gap-1"
               >
-                <Sliders className="w-3 h-3 text-purple-400" />
-                <span>لوحة التحكم</span>
+                <span>المتجر الرقمي</span>
               </Link>
             </div>
           </div>
@@ -179,7 +178,7 @@ export default function HomePage() {
           {/* ======================================================== */}
           {/* THE 4 SURROUNDING SECTIONS (Top, Right, Bottom, Left)    */}
           {/* ======================================================== */}
-          <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:block gap-4 lg:gap-0 mt-6 lg:mt-0">
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:block gap-4 lg:gap-0 max-w-md sm:max-w-2xl lg:max-w-none mx-auto">
             {pillars.map((pillar) => {
               const Icon = pillar.icon;
               const isHovered = activeHoverNode === pillar.id;

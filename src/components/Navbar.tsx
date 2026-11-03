@@ -30,13 +30,19 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
-  const navLinks = [
+  interface NavLinkItem {
+    href: string;
+    label: string;
+    icon: any;
+    isSpecial?: boolean;
+  }
+
+  const navLinks: NavLinkItem[] = [
     { href: '/', label: 'الرئيسية', icon: Zap },
     { href: '/market', label: 'المتجر الرقمي', icon: Layers },
     { href: '/academy', label: 'الأكاديمية', icon: GraduationCap },
     { href: '/ai', label: 'أدوات AI', icon: Cpu },
     { href: '/launchpad', label: 'منصة الإطلاق', icon: Rocket },
-    { href: '/admin', label: 'لوحة التحكم', icon: Sliders, isSpecial: true },
   ];
 
   return (
@@ -136,14 +142,16 @@ export function Navbar() {
                         {user.role.toUpperCase()}
                       </div>
                     </div>
-                    <Link
-                      href="/admin"
-                      onClick={() => setUserDropdownOpen(false)}
-                      className="w-full flex items-center gap-2 p-2 rounded-xl text-gray-300 hover:bg-purple-500/20 hover:text-white transition-colors"
-                    >
-                      <Sliders className="w-3.5 h-3.5 text-purple-400" />
-                      <span>لوحة التحكم (Admin)</span>
-                    </Link>
+                    {user.role === 'admin' && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="w-full flex items-center gap-2 p-2 rounded-xl text-purple-300 hover:bg-purple-500/20 hover:text-white transition-colors font-bold"
+                      >
+                        <Sliders className="w-3.5 h-3.5 text-purple-400" />
+                        <span>لوحة الإدارة السرية (Admin)</span>
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         logout();

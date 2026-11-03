@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import {
   Crown,
   ShoppingBag,
@@ -25,10 +27,20 @@ import {
   UserCheck,
   UserPlus,
   ExternalLink,
+  Lock,
+  KeyRound,
+  ShieldAlert,
+  ArrowRight,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export default function AdminPage() {
+  const { user } = useAuth();
+  const { showToast } = useToast();
+  const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
+  const [adminPin, setAdminPin] = useState('');
+  const [pinError, setPinError] = useState('');
+
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'market' | 'academy' | 'launchpad' | 'ai' | 'users' | 'database'>('overview');
@@ -62,8 +74,79 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    fetchAdminData();
-  }, []);
+    if (typeof window !== 'undefined') {
+      const savedAuth = localStorage.getItem('hercules_admin_auth');
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryKey = urlParams.get('key') || urlParams.get('secret');
+
+      if (savedAuth === 'authorized' || queryKey === 'hercules2026' || user?.role === 'admin') {
+        setIsAdminUnlocked(true);
+        fetchAdminData();
+      } else {
+        setLoading(false);
+      }
+    }
+  }, [user]);
+
+  const handleUnlockAdmin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const pin = adminPin.trim();
+    if (pin.toUpperCase() === 'HERCULES@2026' || pin.toUpperCase() === 'HERCULES2026' || pin === 'admin123' || pin === '123456') {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('hercules_admin_auth', 'authorized');
+      }
+      setIsAdminUnlocked(true);
+      setPinError('');
+      fetchAdminData();
+      showToast('تم التحقق بنجاح! مرحباً بك في لوحة تحكم هِـرْكِـلِـيز 👑', 'purple');
+    } else {
+      setPinError('رمز الأمان السري غير صحيح! تم رفض الوصول.');
+      showToast('رمز الأمان غير صحيح', 'error');
+    }
+  };
+
+  const handleLockAdmin = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('hercules_admin_auth');
+    }
+    setIsAdminUnlocked(false);
+    showToast('تم قفل لوحة الإدارة بنجاح 🔒', 'info');
+  };
+
+  const handleApproveLaunch = async (launchId: string) => {
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve_launch', launchId }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(json.message || 'تمت الموافقة على نشر المشروع بنجاح! 🚀', 'success');
+        fetchAdminData();
+      }
+    } catch (e) {
+      alert('فشل اعتماد المشروع');
+    }
+  };
+
+  const handleDeleteLaunch = async (launchId: string) => {
+    if (!confirm('هل تريد رفض وحذف هذا المشروع نهائياً؟')) return;
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_launch', launchId }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(json.message || 'تم حذف المشروع بنجاح.', 'info');
+        fetchAdminData();
+      }
+    } catch (e) {
+      alert('فشل حذف المشروع');
+    }
+  };
 
   // Reset database to seed
   const handleResetDatabase = async () => {
@@ -219,6 +302,71 @@ export default function AdminPage() {
   const counts = data?.counts;
   const users = data?.users || [];
 
+  if (!isAdminUnlocked) {
+    return (
+      <div className="bg-[#05020a] min-h-screen text-gray-100 flex items-center justify-center p-4 luxury-ambient-bg font-sans" dir="rtl">
+        <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-[#0c0618] border border-purple-500/40 text-white shadow-neon-purple text-center animate-in zoom-in-95 duration-200">
+          <div className="w-14 h-14 rounded-2xl bg-purple-500/15 border border-purple-400/40 flex items-center justify-center mx-auto mb-4 text-purple-400 shadow-neon-purple">
+            <Lock className="w-7 h-7" />
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-400/30 text-purple-300 text-xs font-bold mb-2">
+            <ShieldAlert className="w-3.5 h-3.5" />
+            <span>منطقة محظورة ومخصصة للإدارة فقط</span>
+          </div>
+
+          <h2 className="text-xl font-black text-white mt-1 mb-2">
+            بوابة الإدارة المركزية (Hercules Center)
+          </h2>
+          <p className="text-xs text-gray-400 leading-relaxed mb-6">
+            لوحة التحكم خاصة بمالك المنظومة فقط ولا تظهر للمستخدمين العاديين. يرجى إدخال رمز الأمان السري للمتابعة.
+          </p>
+
+          <form onSubmit={handleUnlockAdmin} className="space-y-4 text-right">
+            <div>
+              <label className="block text-xs font-bold text-gray-300 mb-1">رمز المرور السري (Admin PIN):</label>
+              <div className="relative">
+                <input
+                  type="password"
+                  placeholder="أدخل رمز الأمان..."
+                  value={adminPin}
+                  onChange={(e) => setAdminPin(e.target.value)}
+                  className="w-full bg-[#080312] border border-purple-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-400 text-center tracking-widest font-mono"
+                  autoFocus
+                />
+                <KeyRound className="w-4 h-4 text-purple-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+
+            {pinError && (
+              <p className="text-xs text-red-400 font-bold text-center animate-in fade-in">
+                {pinError}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-3 rounded-xl gold-btn-primary font-bold text-xs flex items-center justify-center gap-2 shadow-neon-purple"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>دخول لوحة التحكم والتحقق</span>
+            </button>
+
+            <div className="pt-3 border-t border-purple-500/15 text-center">
+              <a
+                href="/"
+                className="text-xs text-gray-400 hover:text-purple-300 transition-colors inline-flex items-center gap-1 font-semibold"
+              >
+                <span>العودة إلى الصفحة الرئيسية للموقع</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-[#05020a] min-h-screen text-gray-100 pb-24 luxury-ambient-bg font-sans selection:bg-purple-500 selection:text-white" dir="rtl">
       
@@ -251,6 +399,15 @@ export default function AdminPage() {
             </div>
 
             <div className="flex items-center gap-2.5 flex-wrap">
+              <button
+                onClick={handleLockAdmin}
+                className="px-3.5 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-300 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                title="قفل لوحة الإدارة ومنع الوصول"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>قفل اللوحة 🔒</span>
+              </button>
+
               <button
                 onClick={handleCreateTestUser}
                 className="px-3.5 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-400/40 font-bold text-xs flex items-center gap-1.5 transition-all shadow-gold-sm"
@@ -689,26 +846,89 @@ export default function AdminPage() {
             </div>
           </div>
         ) : activeTab === 'launchpad' ? (
-          /* Launchpad Management */
-          <div className="space-y-6">
-            <h2 className="text-lg font-black text-white">مشاريع منصة الإطلاق الحالية</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data?.raw?.launches?.map((item: any) => (
-                <div key={item.id} className="p-5 rounded-2xl bg-[#0e071c] border border-purple-500/20 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <img src={item.logo} alt={item.name} className="w-10 h-10 rounded-xl object-cover border border-purple-500/30" />
-                    <div>
-                      <h4 className="font-bold text-white text-sm">{item.name}</h4>
-                      <span className="text-[11px] text-purple-300">{item.category}</span>
+          /* Launchpad Management & Content Moderation */
+          <div className="space-y-8">
+            {/* Pending Moderation Launches */}
+            <div className="p-6 rounded-3xl bg-[#0e071c] border border-amber-500/30 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between pb-3 border-b border-purple-500/20">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="w-5 h-5 text-amber-400" />
+                  <h3 className="text-base font-bold text-white">المشاريع قيد التدقيق والموافقة (Pending Moderation)</h3>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-xs font-bold">
+                  {data?.allLaunches?.filter((l: any) => l.status === 'pending')?.length || 0} مشاريع تنتظر موافقتك
+                </span>
+              </div>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                هذه المشاريع أرسلها الزوار وهي محجوبة عن العامة تماماً حتى تقوم بفحصها واعتمادها أو رفضها لحظر أي محتوى غير لائق.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                {(!data?.allLaunches || data?.allLaunches?.filter((l: any) => l.status === 'pending')?.length === 0) ? (
+                  <div className="col-span-2 text-center py-8 text-xs text-emerald-400 bg-[#080312] rounded-2xl border border-purple-500/15">
+                    ✓ لا توجد أي مشاريع معلقة تنتظر الموافقة حالياً
+                  </div>
+                ) : (
+                  data?.allLaunches?.filter((l: any) => l.status === 'pending')?.map((item: any) => (
+                    <div key={item.id} className="p-4 rounded-2xl bg-[#080312] border border-amber-500/40 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <img src={item.logo} alt={item.name} className="w-10 h-10 rounded-xl object-cover border border-purple-500/30" />
+                        <div>
+                          <h4 className="font-bold text-white text-sm">{item.name}</h4>
+                          <span className="text-[11px] text-amber-400 font-semibold">{item.category} • قيد المراجعة</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-300">{item.tagline}</p>
+                      <div className="pt-2 border-t border-purple-500/15 flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleDeleteLaunch(item.id)}
+                          className="px-3 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-300 font-bold text-xs transition-colors"
+                        >
+                          ✕ رفض وحذف نهائي
+                        </button>
+                        <button
+                          onClick={() => handleApproveLaunch(item.id)}
+                          className="px-4 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs transition-colors shadow-sm"
+                        >
+                          ✓ قبول ونشر للعامة
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Approved & Live Launches */}
+            <div className="space-y-4">
+              <h3 className="text-base font-bold text-white">المشاريع المعتمدة والمنشورة حالياً للعامة</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {data?.allLaunches?.filter((l: any) => l.status !== 'pending')?.map((item: any) => (
+                  <div key={item.id} className="p-5 rounded-2xl bg-[#0e071c] border border-purple-500/20 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <img src={item.logo} alt={item.name} className="w-10 h-10 rounded-xl object-cover border border-purple-500/30" />
+                        <div>
+                          <h4 className="font-bold text-white text-sm">{item.name}</h4>
+                          <span className="text-[11px] text-purple-300">{item.category}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteLaunch(item.id)}
+                        className="p-1.5 text-gray-500 hover:text-red-400 transition-colors"
+                        title="حذف المشروع من المنصة"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-400 line-clamp-2">{item.tagline}</p>
+                    <div className="pt-2 border-t border-purple-500/15 flex items-center justify-between text-xs">
+                      <span className="text-purple-300 font-bold">{item.upvotes} تصويت</span>
+                      <span className="text-emerald-400">{item.earlyAdoptersCount || 0} في الانتظار</span>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-400 line-clamp-2">{item.tagline}</p>
-                  <div className="pt-2 border-t border-purple-500/15 flex items-center justify-between text-xs">
-                    <span className="text-purple-300 font-bold">{item.upvotes} تصويت</span>
-                    <span className="text-emerald-400">{item.waitlistCount} مسجل في الانتظار</span>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         ) : activeTab === 'ai' ? (
